@@ -39,34 +39,45 @@ app.get('/api/employees', async (req, res, next) => {
   app.post('/api/employees', async (req, res, next) => {
     try {
       const SQL = `
-        INSERT INTO employees()
+        INSERT INTO employees(name, department_id)
+        VALUES($1, $2)
+        RETURNING *
       `;
-      const response = await client.query(SQL);
-      res.send(response.rows);
+      const response = await client.query(SQL, [req.body.name, req.body.department_id]);
+      res.send(response.rows[0]);
     } catch (ex) {
       next(ex)
     }
   });
+
   // Update
     app.put('/api/employees/:id', async (req, res, next) => {
       try {
         const SQL = `
-          
+          UPDATE employees
+          SET name=$1, department_is=$2, updated_at= now()
+          WHERE id=$4 RETURNING *
         `;
-        const response = await client.query(SQL);
-        res.send(response.rows);
+        const response = await client.query(SQL, [
+          req.body.name,
+          req.body.department_id,
+          req.params.id
+        ]);
+        res.send(response.rows[0]);
       } catch (ex) {
         next(ex)
       }
     });
+
     // Delete
       app.delete('/api/employees/:id', async (req, res, next) => {
         try {
           const SQL = `
-          
+            DELETE from employees
+            WHERE id = $1
           `;
-          const response = await client.query(SQL);
-          res.send(response.rows);
+          const response = await client.query(SQ, [req.params.id]);
+          res.sendStatus(204);
         } catch (ex) {
           next(ex)
         }
