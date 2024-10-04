@@ -7,8 +7,9 @@ const port = process.env.PORT || 3000;
 
 // APP ROUTES
 // parse body into JS objects
-app.use(express.json())
+app.use(express.json());
 // log requests as they come in
+app.use(require('morgan')('dev'));
 
 // Read 
 app.get('/api/departments', async (req, res, next) => {
@@ -55,14 +56,19 @@ app.get('/api/employees', async (req, res, next) => {
       try {
         const SQL = `
           UPDATE employees
-          SET name=$1, department_is=$2, updated_at= now()
-          WHERE id=$4 RETURNING *
+          SET name=$1, department_id=$2, updated_at= now()
+          WHERE id=$3 RETURNING *
         `;
         const response = await client.query(SQL, [
           req.body.name,
           req.body.department_id,
           req.params.id
         ]);
+
+        if (response.rows.length === 0) {
+          return res.status(404).send({ message: "Employee not found"});
+        }
+
         res.send(response.rows[0]);
       } catch (ex) {
         next(ex)
@@ -76,7 +82,11 @@ app.get('/api/employees', async (req, res, next) => {
             DELETE from employees
             WHERE id = $1
           `;
-          const response = await client.query(SQ, [req.params.id]);
+          const response = await client.query(SQL, [req.params.id]);
+
+          if (response.rowCount === 0) {
+            return res.status(404).send({ message: 'Employee not found'});
+          }
           res.sendStatus(204);
         } catch (ex) {
           next(ex)
