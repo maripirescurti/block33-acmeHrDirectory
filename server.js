@@ -11,21 +11,98 @@ app.use(express.json())
 // log requests as they come in
 
 // Read 
+app.get('/api/departments', async (req, res, next) => {
+  try {
+    const SQL = `
+      SELECT * from departments
+    `;
+    const response = await client.query(SQL);
+    res.send(response.rows);
+  } catch (ex) {
+    next(ex)
+  }
+});
+
+app.get('/api/employees', async (req, res, next) => {
+  try {
+    const SQL = `
+      SELECT * from employees ORDER BY created_at DESC;
+    `;
+    const response = await client.query(SQL);
+    res.send(response.rows);
+  } catch (ex) {
+    next(ex)
+  }
+});
+
 // Create 
-// Update
-// Delete
+  app.post('/api/employees', async (req, res, next) => {
+    try {
+      const SQL = `
+        INSERT INTO employees()
+      `;
+      const response = await client.query(SQL);
+      res.send(response.rows);
+    } catch (ex) {
+      next(ex)
+    }
+  });
+  // Update
+    app.put('/api/employees/:id', async (req, res, next) => {
+      try {
+        const SQL = `
+          
+        `;
+        const response = await client.query(SQL);
+        res.send(response.rows);
+      } catch (ex) {
+        next(ex)
+      }
+    });
+    // Delete
+      app.delete('/api/employees/:id', async (req, res, next) => {
+        try {
+          const SQL = `
+          
+          `;
+          const response = await client.query(SQL);
+          res.send(response.rows);
+        } catch (ex) {
+          next(ex)
+        }
+      });
 
 // init fucntion
 const init = async () => {
   await client.connect();
   console.log('connected to database');
   let SQL = `
-  
+    DROP TABLE IF EXISTS employees;
+    DROP TABLE IF EXISTS departments;
+    CREATE TABLE departments(
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(50)
+    );
+    CREATE TABLE employees(
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(50),
+      created_at TIMESTAMP DEFAULT now(),
+      updated_at TIMESTAMP DEFAULT now(),
+      department_id INTEGER REFERENCES departments(id) NOT NULL
+    );
   `;
   await client.query(SQL);
   console.log('tables created');
   SQL = `
-  
+    INSERT INTO departments(name) VALUES('Management');
+    INSERT INTO departments(name) VALUES('Designers');
+    INSERT INTO departments(name) VALUES('Finance');
+    INSERT INTO employees(name, department_id) VALUES('Simba', (SELECT id FROM departments WHERE name='Management'));
+    INSERT INTO employees(name, department_id) VALUES('Nala', (SELECT id FROM departments WHERE name='Management'));
+    INSERT INTO employees(name, department_id) VALUES('Ozan', (SELECT id FROM departments WHERE name='Designers'));
+    INSERT INTO employees(name, department_id) VALUES('Rose', (SELECT id FROM departments WHERE name='Designers'));
+    INSERT INTO employees(name, department_id) VALUES('Mariana', (SELECT id FROM departments WHERE name='Finance'));
+    INSERT INTO employees(name, department_id) VALUES('Bobby', (SELECT id FROM departments WHERE name='Finance'));
   `;
   await client.query(SQL);
   console.log('data seeded');
